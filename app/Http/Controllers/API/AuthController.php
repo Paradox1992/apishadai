@@ -33,7 +33,7 @@ class AuthController extends Controller
         try {
             $device = Devices::where('ip', $request->ip())->first();
             if (!$device) {
-                return response()->json(['error' => 'Dispositivo Invalido.'], 401);
+                return response()->json(['error' => 'Dispositivo Invalido.' . $request->ip()], 401);
             }
             $deviceStatus = Devicestatus::where('id', $device->sts)->first();
             if ($deviceStatus['descripcion'] == 'Disabled') {
