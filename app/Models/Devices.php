@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class Devices extends Model
 {
     use HasFactory;
-    protected $fillable = ['ip', 'stock', 'sts'];
+    protected $fillable = ['ip', 'name', 'stock', 'sts'];
 
     public function stock()
     {
@@ -26,7 +26,7 @@ class Devices extends Model
 
     public function cfgstocks()
     {
-        return $this->hasMany(Cfgstocks::class, 'device', 'id');
+        return $this->hasMany(cfgstocks::class, 'device', 'id');
     }
 
 }

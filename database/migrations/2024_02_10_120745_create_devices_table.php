@@ -13,6 +13,7 @@ return new class extends Migration {
         Schema::create('devices', function (Blueprint $table) {
             $table->id()->unique()->autoIncrement();
             $table->string('ip', 16);
+            $table->string('name', 80);
             $table->unsignedBigInteger('stock');
             $table->foreign('stock')->references('id')->on('stocks')->onDelete('cascade')->onUpdate('cascade');
             $table->unsignedBigInteger('sts');

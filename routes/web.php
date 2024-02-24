@@ -14,5 +14,7 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get('/', function () {
-    return null;
+    return json_encode([
+        'Not Supported Yet'
+    ]);
 });
