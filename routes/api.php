@@ -31,7 +31,7 @@ Route::middleware('auth:api')->group(function () {
 |--------------------------------------------------------------------------
 |
 */
-    Route::apiResource('user/resource', UserController::class);
+    Route::apiResource('user/usr_resource', UserController::class);
     Route::apiResource('user/status', UserStatusController::class);
     Route::apiResource('user/rol', Rolcontroller::class);
     /*
@@ -40,7 +40,7 @@ Route::middleware('auth:api')->group(function () {
 |--------------------------------------------------------------------------
 |
 */
-    Route::apiResource('formulario/resource', FormulariosController::class);
+    Route::apiResource('formulario/frm_resource', FormulariosController::class);
     Route::get('formulario/bymodule/{id}', [FormulariosController::class, 'filterbyModule']);
     Route::apiResource('formulario/estado', FormularioestadoController::class);
     /*
@@ -49,7 +49,7 @@ Route::middleware('auth:api')->group(function () {
 |--------------------------------------------------------------------------
 |
 */
-    Route::apiResource('modulo/resource', ModulosController::class);
+    Route::apiResource('modulo/mdl_resource', ModulosController::class);
     Route::apiResource('modulo/estado', ModulosEstadoController::class);
     /*
 |--------------------------------------------------------------------------
@@ -57,7 +57,7 @@ Route::middleware('auth:api')->group(function () {
 |--------------------------------------------------------------------------
 |
 */
-    Route::apiResource('permisos/resource', PermisosController::class);
+    Route::apiResource('permisos/prms_resource', PermisosController::class);
     Route::get('permisos/byuser/{id}', [PermisosController::class, 'search']);
 
     /*
@@ -66,7 +66,7 @@ Route::middleware('auth:api')->group(function () {
 |--------------------------------------------------------------------------
 |
 */
-    Route::apiResource('stock/resource', StockController::class);
+    Route::apiResource('stock/stk_resource', StockController::class);
 
     /*
 |--------------------------------------------------------------------------
@@ -74,7 +74,7 @@ Route::middleware('auth:api')->group(function () {
 |--------------------------------------------------------------------------
 |
 */
-    Route::apiResource('workSession/resource', WorkSessionController::class);
+    Route::apiResource('workSession/ws_resource', WorkSessionController::class);
     Route::post('workSession/work', [WorkSessionController::class, 'StartEnd']);
     Route::post('workSession/lunch', [WorkSessionController::class, 'lunchStartEnd']);
     Route::get('workSession/workSessionByDate/', [WorkSessionController::class, 'getWorkSessionsByDate']);
