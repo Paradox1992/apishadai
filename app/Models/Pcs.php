@@ -25,6 +25,6 @@ class Pcs extends Model
     // stock
     public function stock()
     {
-        return $this->belongsTo(stock::class, 'stock');
+        return $this->belongsTo(Stock::class, 'stock');
     }
 }

@@ -69,7 +69,7 @@ class AuthController extends Controller
                 return $this->sendResponse(null, 'Credenciales Incorrectas', 400);
             }
         } catch (Throwable $th) {
-            return $this->sendResponse($th, "Error Interno: $th", 500);
+            return $this->sendResponse(null, 'Error Interno:' . $th->getMessage(), 500);
         }
     }
 
