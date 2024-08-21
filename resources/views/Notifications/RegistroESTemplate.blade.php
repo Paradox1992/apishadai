@@ -1,5 +1,5 @@
 @component('mail::message')
-    # {{ $subject }}
+    # {{ $subject }}:{{ $body['id'] }}
 
     |----------Usuario:----------|
     {{ $body['user'] }}

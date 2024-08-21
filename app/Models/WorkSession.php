@@ -46,8 +46,9 @@ class WorkSession extends Model
         $currentInfo =   Pcs::where('id', $this->pc_work)->first();
         $details = [
             'from' => env('MAIL_FROM_ADDRESS', 'alertsfarma@gmail.com'),
-            'subject' => 'Registro E/S/LUNCH',
+            'subject' => 'Registro E/S',
             'data' => [
+                'id' => $this->id,
                 'user' => $this->user->name,
                 'start_time' => $this->start_time,
                 'end_time' => $this->end_time,
