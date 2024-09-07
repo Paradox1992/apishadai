@@ -40,7 +40,7 @@ class AuthController extends Controller
                 }
 
 
-                $login['token'] = $user->createToken('MyApp')->accessToken;
+                $login['token'] = $user->createToken($request->name)->accessToken;
                 $device = $this->getPcInfo($request);
                 $dataMatch = [
                     'usuario' => $user->id,

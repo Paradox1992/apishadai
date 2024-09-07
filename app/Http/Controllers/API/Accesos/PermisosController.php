@@ -15,11 +15,11 @@ class PermisosController extends Controller
      */
     public function index()
     {
-        $permisos = permisos::all();
+        /* $permisos = permisos::all();
         if (!$permisos) {
             return $this->sendResponse(null, 'Permisos no encontrados', 404);
-        }
-        return $this->sendResponse(PermisosResource::collection($permisos), 'Permisos encontrados');
+        }*/
+        return $this->sendResponse(null, 'Not Supported Yet', 501);
     }
 
     /**

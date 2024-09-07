@@ -13,7 +13,8 @@ class ModulosController extends Controller
 
     public function index()
     {
-        $modulos = modulos::all();
+
+        $modulos = Modulos::orderBy('descripcion', 'asc')->get();
         if (!$modulos) {
             return $this->sendError('Error al obtener los modulos');
         }

@@ -3,7 +3,6 @@
 namespace App\Notifications;
 
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
@@ -18,19 +17,13 @@ class AlertMail extends Notification
         $this->details = $details;
     }
 
-    /**
-     * Obtiene los canales de entrega de la notificación.
-     *
-     * @return array<int, string>
-     */
+
     public function via($notifiable): array
     {
         return ['mail'];
     }
 
-    /**
-     * Obtiene la representación en correo de la notificación.
-     */
+
     public function toMail($notifiable)
     {
         $mailMessage = (new MailMessage)
@@ -41,15 +34,11 @@ class AlertMail extends Notification
                 'body' =>  $this->details['data'],
                 'url' => url('/')
             ])
-            ->cc('791gerardo791@gmail.com');
+            ->cc($this->details['cc']);
         return $mailMessage;
     }
 
-    /**
-     * Obtiene la representación en arreglo de la notificación.
-     *
-     * @return array<string, mixed>
-     */
+
     public function toArray($notifiable): array
     {
         return [

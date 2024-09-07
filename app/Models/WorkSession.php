@@ -16,7 +16,7 @@ class WorkSession extends Model
     protected $fillable = [
         'user_id',
         'pc_work',
-        'start_time',
+        'wkstart_time',
         'end_time',
         'lunch_start_time',
         'lunch_end_time',
@@ -44,24 +44,24 @@ class WorkSession extends Model
     public function notifyES()
     {
         $currentInfo =   Pcs::where('id', $this->pc_work)->first();
+        $mails = MailsConfig::all()->first();
         $details = [
-            'from' => env('MAIL_FROM_ADDRESS', 'alertsfarma@gmail.com'),
+            'from' =>  $mails->mail_alert,
+            'cc' => $mails->mail_cc2,
             'subject' => 'Registro E/S',
             'data' => [
                 'id' => $this->id,
                 'user' => $this->user->name,
-                'start_time' => $this->start_time,
-                'end_time' => $this->end_time,
+                'start_time' => $this->wkstart_time,
+                'end_time' => $this->wkend_time,
                 'lunch_start_time' => $this->lunch_start_time,
                 'lunch_end_time' => $this->lunch_end_time,
                 'stock' => $currentInfo->Stock->descripcion,
                 'lunchDuration' => $this->getLunchDurationAttribute(),
                 'workDuration' => $this->getWorkDurationAttribute(),
             ]
-        ];
-
-        $toEmail = 'riveraorud@gmail.com';
-        Notification::route('mail', $toEmail)->notify(new AlertMail($details));
+        ];;
+        Notification::route('mail', $mails->mail_cc1)->notify(new AlertMail($details));
     }
 
 

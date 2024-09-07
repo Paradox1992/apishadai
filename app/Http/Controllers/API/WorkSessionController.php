@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\WorkSessionResource;
 use App\Models\Pcs;
 use App\Models\WorkSession;
-use App\Notifications\EsLuchTimeNotify;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -19,12 +18,7 @@ class WorkSessionController extends Controller
      */
     public function index()
     {
-        // show last 3 days
-        $workSessions = WorkSession::whereBetween('created_at', [Carbon::now()->subDays(2), Carbon::now()])->get();
-        if ($workSessions->count() < 0) {
-            return $this->sendResponse(null, 'Work sessions not found', 404);
-        }
-        return $this->sendResponse(WorkSessionResource::collection($workSessions), 'Work sessions retrieved successfully');
+        return $this->sendResponse(null, 'Not implemented', 501);
     }
 
     /**
@@ -85,16 +79,16 @@ class WorkSessionController extends Controller
         $date = Carbon::parse($request->date_time)->toDateString();
 
         $workSession = WorkSession::where('user_id', $request->user_id)
-            ->whereDate('start_time', $date)
+            ->whereDate('wkstart_time', $date)
             ->first();
 
         if ($workSession) {
-            if ($workSession->start_time && $workSession->end_time) {
+            if ($workSession->wkstart_time && $workSession->wkend_time) {
                 return $this->sendResponse(null, 'Datos del dia ya registrados', 400);
             }
 
-            if (!$workSession->end_time) {
-                $workSession->end_time = $request->date_time;
+            if (!$workSession->wkend_time) {
+                $workSession->wkend_time = $request->date_time;
                 $workSession->save();
                 $workSession->notifyES();
                 return $this->sendResponse(null, 'Salida Exitosa');
@@ -104,7 +98,7 @@ class WorkSessionController extends Controller
             $workSession = WorkSession::create([
                 'user_id' => $request->user_id,
                 'pc_work' => $pc_info->id,
-                'start_time' => $request->date_time,
+                'wkstart_time' => $request->date_time,
             ]);
 
             if ($workSession) {
@@ -112,7 +106,6 @@ class WorkSessionController extends Controller
                 return $this->sendResponse(null, 'Registro Exitoso');
             }
         }
-
         return $this->sendResponse(null, 'No se pudo registrar', 500);
     }
 
@@ -134,8 +127,8 @@ class WorkSessionController extends Controller
 
         $workSessions = WorkSession::where('user_id', $request->user_id)
             ->where(function ($query) use ($startDate, $endDate) {
-                $query->whereBetween('start_time', [$startDate, $endDate])
-                    ->orWhereBetween('end_time', [$startDate, $endDate]);
+                $query->whereBetween('wkstart_time', [$startDate, $endDate])
+                    ->orWhereBetween('wkend_time', [$startDate, $endDate]);
             })
             ->get();
 
@@ -162,7 +155,7 @@ class WorkSessionController extends Controller
         $date = Carbon::parse($request->date_time)->toDateString();
 
         $workSession = WorkSession::where('user_id', $request->user_id)
-            ->whereDate('start_time', $date)
+            ->whereDate('wkstart_time', $date)
             ->first();
 
         if (!$workSession) {
