@@ -20,7 +20,7 @@ class PermisosResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'usuario' => UserResource::make(User::find($this->usuario)),
+            'usuario' => null,
             'modulo' =>  ModulosResource::make(modulos::find($this->modulo)),
             'formulario' => FormulariosResource::make(formularios::find($this->formulario)),
         ];

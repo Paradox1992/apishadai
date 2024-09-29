@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Resources\Accesos\PermisosResource;
+use App\Http\Resources\user\UserResource;
 use App\Models\matchtoken;
 use App\Models\Pcs;
 use App\Models\permisos;
@@ -32,6 +33,7 @@ class AuthController extends Controller
             }
 
             if (auth()->attempt(['name' => $request->name, 'password' => $request->password])) {
+
                 $user = auth()->user();
                 $status = $user->Estado->descripcion;
 
@@ -53,11 +55,7 @@ class AuthController extends Controller
                     $current_stock = $device->Stock;
 
                     $login['perfil'] = [
-                        'usuario' => [
-                            'id' => $user->id,
-                            'name' => $user->name,
-                            'rol' => $user->Rol,
-                        ],
+                        'usuario' => UserResource::make($user),
                         'stock' => $current_stock,
                     ];
                     $login['permisos'] = PermisosResource::collection($permisos);
@@ -81,7 +79,7 @@ class AuthController extends Controller
     public function register(Request $request): JsonResponse
     {
         try {
-            $Validator = Validator::make($request->all(), [
+            $Validator = Validator::make($request->all(), rules: [
                 'rol' => 'required|int',
                 'name' => 'required|unique:users,name|string|max:50',
                 'email' => 'required|string|email|max:100|unique:users',

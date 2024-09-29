@@ -64,5 +64,8 @@ class User extends Authenticatable
         return $this->hasMany(matchtoken::class, 'usuario');
     }
 
-
+    public function horalab()
+    {
+        return $this->hasMany(Horas_lab::class, 'usuario');
+    }
 }
