@@ -6,8 +6,8 @@ use Illuminate\Support\Facades\Route;
 
 // ========================= LOGIN =====================
 Route::post('auth/login', [AuthController::class, 'login']);
+Route::post('auth/register', [AuthController::class, 'register']);
 // =====================================================
-
 
 Route::middleware('auth:api')->group(function () {
     // =================== TEST ============================
@@ -16,6 +16,10 @@ Route::middleware('auth:api')->group(function () {
 
     // =================== AUTH MODULO =====================
     require __DIR__ . '/Custom/api_auth.php';
+    // =====================================================
+
+    // =================== WORK SESSION =====================
+    require __DIR__ . '/Custom/api_worksession.php';
     // =====================================================
 
 });

@@ -25,21 +25,28 @@ trait FilterChain
     private $method;
     public function __construct()
     {
-        $this->AccesDataBase();
         $this->request = request();
+        $this->checkAccept();
+        $this->checkUserAgent();
+
+        $this->AccesDataBase();
+
         $this->method = $this->request->method();
         $this->DeviceName = $this->request->header('X-Device-Name');
         $this->DeviceIp = $this->request->header('X-Device-Ip');
         $this->DeviceIp2 = $this->request->header($this->request->ip());
         $this->Token = $this->request->bearerToken();
 
-        if (!$this->comparePathLogin()) {
+
+
+
+        if (!$this->enterLogin()) {
             $this->ExpiredToken();
             $this->checkDevice();
             $this->setUserId();
             $this->checkUser();
             $this->MatchTokenUser();
-             $this->AccessControl();
+            $this->AccessControl();
         } else {
             $this->checkDevice();
         }
@@ -88,7 +95,7 @@ trait FilterChain
         $tokenExp = $token->exp;
         $currentDateTime = time();
         if ($tokenExp < $currentDateTime) {
-            MatchToken::where('token', $this->Token)->delete();
+            $this->logout();
             $this->Send(null, 'Session Expirada', 401);
         }
     }
@@ -109,12 +116,16 @@ trait FilterChain
     {
         $path = $this->getURL();
 
+        if ($path['md'] == 'auth' && $path['vw'] == 'logout') {
+            $this->logout();
+        }
+
         $status = $this->get_md_vw($this->userId, $path['md'], $path['vw']);
         if (!$status) {
             $this->Send(null, 'Acceso Denegado', 401);
         }
 
-        $data_status = $status ->first();
+        $data_status = $status->first();
         if ($data_status['md_status'] != 'ACTIVO') {
             $this->Send(null, 'Modulo no Disponible', 401);
         }
@@ -179,38 +190,35 @@ trait FilterChain
     }
 
     private function get_md_vw($user_id, $modulo_id, $view_id)
-{
-    return Permisos::where('usuario', $user_id)
-        ->whereHas('modulo', function ($query) use ($modulo_id) {
-            $query->where('nombre', $modulo_id);
-        })
-        ->whereHas('vista', function ($query) use ($view_id) {
-            $query->where('nombre', $view_id);
-        })
-        ->with([
-            'modulo.estado' => function ($query) {
-                $query->select('id', 'descripcion');
-            },
-            'vista.estado' => function ($query) {
-                $query->select('id', 'descripcion');
-            }
-        ])
-        ->get()
-        ->map(function ($permiso) {
-            return [
-                'md_status' => $permiso->Modulo->Estado->descripcion,
-                'vw_status' => $permiso->Vista->Estado->descripcion,
-            ];
-        });
-}
+    {
+        return Permisos::where('usuario', $user_id)
+            ->whereHas('modulo', function ($query) use ($modulo_id) {
+                $query->where('nombre', $modulo_id);
+            })
+            ->whereHas('vista', function ($query) use ($view_id) {
+                $query->where('nombre', $view_id);
+            })
+            ->with([
+                'modulo.estado' => function ($query) {
+                    $query->select('id', 'descripcion');
+                },
+                'vista.estado' => function ($query) {
+                    $query->select('id', 'descripcion');
+                }
+            ])
+            ->get()
+            ->map(function ($permiso) {
+                return [
+                    'md_status' => $permiso->Modulo->Estado->descripcion,
+                    'vw_status' => $permiso->Vista->Estado->descripcion,
+                ];
+            });
+    }
 
-    private function comparePathLogin()
+    private function enterLogin()
     {
         $path = $this->getURL();
-        if ($path['md'] == 'auth' && $path['vw'] == 'login') {
-            return true;
-        }
-        return false;
+        return $path['md'] == 'auth' && $path['vw'] == 'login';
     }
 
     private function AccesDataBase()
@@ -227,5 +235,27 @@ trait FilterChain
     {
         $decodeToken = $this->getDecodeToken($this->Token);
         $this->userId = $decodeToken->sub;
+    }
+
+
+    private function checkAccept()
+    {
+        $accept = $this->request->header('Accept');
+        if ($accept != 'application/json') {
+            $this->Send(null, 'Formato de Datos Invalido', 400);
+        }
+    }
+
+    private function checkUserAgent()
+    {
+        $userAgent = $this->request->header('User-Agent');
+        if ($userAgent != 'application/app/v-1.0.0') {
+            $this->Send(null, 'Version de aplicion Invalida', 400);
+        }
+    }
+
+    private function logout()
+    {
+        MatchToken::where('token', $this->Token)->delete();
     }
 }

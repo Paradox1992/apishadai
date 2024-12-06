@@ -4,6 +4,7 @@ namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\WorkSessionResource;
+use App\Models\Devices;
 use App\Models\Pcs;
 use App\Models\WorkSession;
 use Carbon\Carbon;
@@ -94,10 +95,10 @@ class WorkSessionController extends Controller
                 return $this->sendResponse(null, 'Salida Exitosa');
             }
         } else {
-            $pc_info = $this->getPcInfo($request);
+            $device = $this->getPcInfo($request);
             $workSession = WorkSession::create([
                 'user_id' => $request->user_id,
-                'pc_work' => $pc_info->id,
+                'device' => $device->id,
                 'wkstart_time' => $request->date_time,
             ]);
 
@@ -187,7 +188,10 @@ class WorkSessionController extends Controller
         try {
             $DeviceName = $request->header('X-Device-Name');
             $DeviceIp = $request->header('X-Device-Ip');
-            $device = Pcs::with('estado')->where('name', $DeviceName)->where('ip', $DeviceIp)->first();
+            $device = Devices::where('name', $DeviceName)
+            ->where('ip', $DeviceIp)
+            ->where('ip2', $request->ip())
+            ->first();
             return $device;
         } catch (Throwable $th) {
             return null;

@@ -21,14 +21,6 @@ class RestrictMethods
             if (!in_array($request->method(), $allowedMethods)) {
                 return $this->sendResponse(null, 'Not Supported Yet', 405);
             }
-
-            /*  if (in_array($request->method(), ['PUT', 'DELETE'])) {
-                $routeParameters = $request->route()->parameters();
-                if (!isset($routeParameters['id'])) {
-                    return $this->sendResponse(null, 'URL incompleta', 400);
-                }
-            }*/
-
             return $next($request);
         } catch (Throwable $th) {
             return $this->sendResponse(null, $th->getMessage(), 500);

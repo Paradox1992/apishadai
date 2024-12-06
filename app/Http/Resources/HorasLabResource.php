@@ -6,7 +6,7 @@ use App\Http\Resources\user\UserResource;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class PermisosResource extends JsonResource
+class HorasLabResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
@@ -14,15 +14,14 @@ class PermisosResource extends JsonResource
      * @return array<string, mixed>
      */
     public function toArray(Request $request): array
-    { // resolver las relaciones n+1 
-        
+    {
         return [
             'id' => $this->id,
-            'modulo' => [
-                $this->Modulo,
-                $this->Modulo->Vista,
-            ]
-
+            'usuario' => $this->Usuario,
+            'horas_lab' => $this->horas_lab,
+            'horas_lunch' => $this->horas_lunch,
+            'created_at' => $this->created_at,
+            'updated_at' => $this->updated_at
         ];
     }
 }

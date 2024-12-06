@@ -64,7 +64,11 @@ class User extends Authenticatable
     }
 
     public function HoraLab(){
-        return $this->hasMany(Horas_lab::class, 'usuario');
+        return $this->hasMany(Horas_lab::class, 'usuario', 'id');
+    }
+
+    public function WorkSession(){
+        return $this->hasMany(WorkSession::class, 'usuario');
     }
    
 }

@@ -32,4 +32,8 @@ class Devices extends Model
     {
         return $this->hasMany(MatchToken::class);
     }
+    public function WorkSession()
+    {
+        return $this->hasMany(WorkSession::class);
+    }
 }

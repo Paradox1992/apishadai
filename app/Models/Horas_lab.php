@@ -15,8 +15,8 @@ class Horas_lab extends Model
         'horas_lunch',
     ];
 
-    public function usuario()
+    public function Usuario()
     {
-        return $this->belongsTo(User::class, 'id');
+        return $this->belongsTo(User::class,'id');
     }
 }

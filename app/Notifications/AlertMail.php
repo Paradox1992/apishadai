@@ -27,7 +27,7 @@ class AlertMail extends Notification
     public function toMail($notifiable)
     {
         $mailMessage = (new MailMessage)
-            ->from($this->details['from'], 'ShadaiAlerts')
+            ->from($this->details['from'], 'ShFarmaAlerts')
             ->subject($this->details['subject'])
             ->markdown('Notifications.RegistroESTemplate', [
                 'subject' => $this->details['subject'],
