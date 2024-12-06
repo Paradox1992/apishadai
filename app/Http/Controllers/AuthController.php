@@ -2,11 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Resources\Accesos\PermisosResource;
+use App\Http\Resources\PermisosResource;
 use App\Http\Resources\user\UserResource;
-use App\Models\matchtoken;
-use App\Models\Pcs;
-use App\Models\permisos;
+use App\Models\Devices;
+use App\Models\MatchToken;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -22,6 +21,7 @@ class AuthController extends Controller
      */
     public function login(Request $request): JsonResponse
     {
+
         try {
             $Validator = Validator::make($request->all(), [
                 'name' => 'required|string|max:25',
@@ -38,27 +38,29 @@ class AuthController extends Controller
                 $status = $user->Estado->descripcion;
 
                 if ($status != 'ACTIVO') {
-                    return $this->sendResponse(null, 'Usuario inactivo', 400);
+                    return $this->sendResponse(null, 'Usuario Inactivo', 400);
                 }
 
 
                 $login['token'] = $user->createToken($request->name)->accessToken;
                 $device = $this->getPcInfo($request);
+
                 $dataMatch = [
                     'usuario' => $user->id,
-                    'pc' => $device->id,
+                    'device' => $device->id,
                     'token' => $login['token'],
                 ];
-                $saveMath = matchtoken::create($dataMatch);
+
+                $saveMath = MatchToken::create($dataMatch);
                 if ($saveMath) {
-                    $permisos = permisos::where('usuario', $user->id)->get();
-                    $current_stock = $device->Stock;
+                      
+                      $current_stock = $device->Stock;
 
                     $login['perfil'] = [
                         'usuario' => UserResource::make($user),
                         'stock' => $current_stock,
                     ];
-                    $login['permisos'] = PermisosResource::collection($permisos);
+                     $login['permisos'] = PermisosResource::collection($user->Permisos);
                     return $this->sendResponse($login, 'User login successfully.');
                 } else {
                     return $this->sendResponse(null, 'Error al crear Login.', 500);
@@ -67,7 +69,7 @@ class AuthController extends Controller
                 return $this->sendResponse(null, 'Credenciales Incorrectas', 400);
             }
         } catch (Throwable $th) {
-            return $this->sendResponse(null, 'Error Interno:' . $th->getMessage(), 500);
+            return $this->sendResponse(null, 'Error Interno:', 500);
         }
     }
 
@@ -99,7 +101,7 @@ class AuthController extends Controller
             }
             return $this->sendResponse(null, 'User register failed.', 500);
         } catch (Throwable $th) {
-            return $this->sendResponse(null, 'Server Error:' . $th->getMessage(), 500);
+            return $this->sendResponse(null, 'Error Interno:' . $th->getMessage(), 500);
         }
     }
     public function logout()
@@ -123,8 +125,14 @@ class AuthController extends Controller
         try {
             $DeviceName = $request->header('X-Device-Name');
             $DeviceIp = $request->header('X-Device-Ip');
-            $device = Pcs::with('estado')->where('name', $DeviceName)->where('ip', $DeviceIp)->first();
+
+            $device = Devices::where('name', $DeviceName)
+            ->where('ip', $DeviceIp)
+            ->where('ip2', $request->ip())
+            ->first();
+
             return $device;
+            
         } catch (Throwable $th) {
             return null;
         }

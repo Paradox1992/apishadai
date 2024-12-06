@@ -5,18 +5,23 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class matchtoken extends Model
+class MatchToken extends Model
 {
     use HasFactory;
-
+    protected $table = 'matchtokens';
     protected $fillable = [
         'usuario',
-        'pc',
-        'token',
+        'device',
+        'token'
     ];
-    // user relation
-    public function usuario()
+
+    public function Device()
     {
-        return $this->belongsTo(User::class, 'id');
+        return $this->belongsTo(Devices::class, 'device');
+    }
+
+    public function Usuario()
+    {
+        return $this->belongsTo(User::class, 'usuario');
     }
 }

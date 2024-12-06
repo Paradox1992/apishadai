@@ -2,19 +2,24 @@
 
 namespace App\Hooks;
 
-use App\Models\matchtoken;
-use App\Models\Pcs;
+use App\Models\Devices;
+use App\Models\MatchToken;
 use App\Models\permisos;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 
 
+/**
+ * Validate Data Transfer
+ */
 trait FilterChain
 {
     private $request;
     private $userId;
+    private $DeviceUUID;
     private $DeviceName;
     private $DeviceIp;
+    private $DeviceIp2;
     private $Token;
 
     private $method;
@@ -23,48 +28,58 @@ trait FilterChain
         $this->AccesDataBase();
         $this->request = request();
         $this->method = $this->request->method();
-        $this->userId = $this->request->header('X-User-Id');
         $this->DeviceName = $this->request->header('X-Device-Name');
         $this->DeviceIp = $this->request->header('X-Device-Ip');
+        $this->DeviceIp2 = $this->request->header($this->request->ip());
         $this->Token = $this->request->bearerToken();
 
         if (!$this->comparePathLogin()) {
-            $this->checkUser();
+            $this->ExpiredToken();
             $this->checkDevice();
-            $this->ExpireToken();
+            $this->setUserId();
+            $this->checkUser();
             $this->MatchTokenUser();
-            $this->AccessControl();
+             $this->AccessControl();
         } else {
             $this->checkDevice();
         }
     }
 
 
-
     private function checkUser()
     {
-
-        $user = User::where('id', $this->userId)->first();
-        if (!$user) {
-            $this->Send(null, 'Usuario Invalido', 400);
+        $decodedToken = $this->getDecodeToken($this->Token);
+        if (!$decodedToken) {
+            $this->Send('Token Invalido', 401);
         }
 
-        if ($user->Estado->descripcion != 'ACTIVO') {
-            $this->Send('Usuario Inactivo', 400);
+        $this->userId = $decodedToken->sub;
+        $user = User::where('id', $this->userId)->first();
+        if (!$user) {
+            $this->Send(null, 'Usuario Invalido', 401);
+        }
+        $status = $user->Estado->descripcion;
+
+        if ($status != 'ACTIVO') {
+            $this->Send(null, 'Usuario Inactivo', 401);
         }
     }
 
     private function checkDevice()
     {
-        $device = Pcs::with('estado')->where('name', $this->DeviceName)->where('ip', $this->DeviceIp)->first();
+
+        $device = Devices::where('name', $this->DeviceName)
+            ->where('ip', $this->DeviceIp)
+            ->where('ip2', $this->request->ip())
+            ->first();
         if (!$device) {
-            $this->Send(null, 'Dispositivo Invalido', 400);
+            $this->Send(null, 'Dispositivo Invalido', 401);
         }
         if ($device->Estado->descripcion != 'ACTIVO') {
-            $this->Send(null, 'Dispositivo no Autorizado', 400);
+            $this->Send(null, 'Dispositivo no Autorizado', 401);
         }
     }
-    public function ExpireToken()
+    public function ExpiredToken()
     {
         $token = $this->getDecodeToken($this->Token);
         if (!$token) {
@@ -73,7 +88,7 @@ trait FilterChain
         $tokenExp = $token->exp;
         $currentDateTime = time();
         if ($tokenExp < $currentDateTime) {
-            matchtoken::where('token', $this->Token)->delete();
+            MatchToken::where('token', $this->Token)->delete();
             $this->Send(null, 'Session Expirada', 401);
         }
     }
@@ -93,23 +108,19 @@ trait FilterChain
     private function AccessControl()
     {
         $path = $this->getURL();
-        $access = $this->get_accesStatus($this->userId, $path['mdl'], $path['frm']);
 
-        if (empty($access->toArray())) {
-            $this->Send(null, 'Acceso Denegado', 400);
+        $status = $this->get_md_vw($this->userId, $path['md'], $path['vw']);
+        if (!$status) {
+            $this->Send(null, 'Acceso Denegado', 401);
         }
 
-        if ($access[0]['mestado'] != 'ACTIVO') {
-            $this->Send(null, ' Modulo no Disponible', 400);
+        $data_status = $status ->first();
+        if ($data_status['md_status'] != 'ACTIVO') {
+            $this->Send(null, 'Modulo no Disponible', 401);
         }
 
-        if ($access[0]['festado'] != 'ACTIVO') {
-            $this->Send(null, 'Formulario no Disponible', 400);
-        }
-
-        // logout
-        if ($path['mdl'] == 'auth' && $path['frm'] == 'logout') {
-            matchtoken::where('token', $this->Token)->delete();
+        if ($data_status['vw_status'] != 'ACTIVO') {
+            $this->Send(null, 'Vista no Disponible', 401);
         }
     }
 
@@ -133,8 +144,8 @@ trait FilterChain
             }
         }
         $result = [
-            'mdl' => $modulo,
-            'frm' => $frm
+            'md' => $modulo,
+            'vw' => $frm
         ];
 
         return $result;
@@ -150,34 +161,53 @@ trait FilterChain
 
     private function MatchTokenUser()
     {
-        $pci_id = Pcs::where('name', $this->DeviceName)
-            ->where('ip', $this->DeviceIp)->first()->id;
-        $hasMatch = matchtoken::where('usuario', $this->userId)
-            ->where('pc', $pci_id)
-            ->where('token', $this->Token)->first();
-        if (!$hasMatch) {
-            $this->Send(null, 'Token Invalido', 400);
+
+        $matchToken = MatchToken::where('token', $this->Token)
+            ->whereHas('usuario', function ($query) {
+                $query->where('id', $this->userId);
+            })
+            ->whereHas('device', function ($query) {
+                $query->where('ip', $this->DeviceIp)
+                    ->where('ip2', $this->request->ip())
+                    ->where('name', $this->DeviceName);
+            })
+            ->first();
+
+        if (!$matchToken) {
+            $this->Send(null, 'Acceso Denegado', 401);
         }
     }
 
-    private function get_accesStatus($uId, $modulo, $frm)
-    {
-        return Permisos::select('modulo_estados.descripcion as mestado', 'frm_estados.descripcion as festado')
-            ->join('modulos', 'permisos.modulo', '=', 'modulos.id')
-            ->join('formularios', 'permisos.formulario', '=', 'formularios.id')
-            ->join('modulo_estados', 'modulos.estado', '=', 'modulo_estados.id')
-            ->join('frm_estados', 'formularios.estado', '=', 'frm_estados.id')
-            ->where('permisos.usuario', '=', $uId)
-            ->where('modulos.descripcion', '=', $modulo)
-            ->where('formularios.descripcion', '=', $frm)
-            ->get();
-    }
-
+    private function get_md_vw($user_id, $modulo_id, $view_id)
+{
+    return Permisos::where('usuario', $user_id)
+        ->whereHas('modulo', function ($query) use ($modulo_id) {
+            $query->where('nombre', $modulo_id);
+        })
+        ->whereHas('vista', function ($query) use ($view_id) {
+            $query->where('nombre', $view_id);
+        })
+        ->with([
+            'modulo.estado' => function ($query) {
+                $query->select('id', 'descripcion');
+            },
+            'vista.estado' => function ($query) {
+                $query->select('id', 'descripcion');
+            }
+        ])
+        ->get()
+        ->map(function ($permiso) {
+            return [
+                'md_status' => $permiso->Modulo->Estado->descripcion,
+                'vw_status' => $permiso->Vista->Estado->descripcion,
+            ];
+        });
+}
 
     private function comparePathLogin()
     {
         $path = $this->getURL();
-        if ($path['mdl'] == 'auth' && $path['frm'] == 'login') {
+        if ($path['md'] == 'auth' && $path['vw'] == 'login') {
             return true;
         }
         return false;
@@ -190,5 +220,12 @@ trait FilterChain
         } catch (\Exception $e) {
             $this->Send(null, 'Aplicacion no Disponible', 400);
         }
+    }
+
+
+    private function setUserId()
+    {
+        $decodeToken = $this->getDecodeToken($this->Token);
+        $this->userId = $decodeToken->sub;
     }
 }

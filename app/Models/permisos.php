@@ -5,26 +5,27 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class permisos extends Model
+class Permisos extends Model
 {
     use HasFactory;
 
+    protected $table = 'permisos';
     protected $fillable = [
         'usuario',
         'modulo',
-        'formulario',
-        'last_access'
+        'vista',
     ];
-    public function usuario()
-    {
-        return $this->belongsTo(User::class, 'id');
+
+
+    public function Usuario(){
+        return $this->belongsTo(User::class, 'usuario');
     }
-    public function modulo()
-    {
-        return $this->belongsTo(modulos::class, 'id');
+    public function Modulo()    {
+        return $this->belongsTo(Modulos::class, 'modulo');
     }
-    public function formulario()
-    {
-        return $this->belongsTo(formularios::class, 'id');
+
+    public function Vista()    {
+        return $this->belongsTo(Vistas::class, 'vista');
     }
+
 }

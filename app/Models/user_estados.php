@@ -12,7 +12,7 @@ class user_estados extends Model
         'descripcion',
     ];
 
-    public function user()
+    public function User()
     {
         return $this->hasMany(User::class);
     }

@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -44,28 +43,28 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
     ];
-    public function rol()
+    public function Rol()
     {
-        return $this->belongsTo(roles::class, 'rol');
+        return $this->belongsTo(RolesUser::class, 'rol');
     }
 
-    public function estado()
+    public function Estado()
     {
         return $this->belongsTo(user_estados::class, 'estado');
     }
 
-    public function permiso()
+    public function MathcToken()
     {
-        return $this->hasMany(permisos::class, 'usuario');
+        return $this->hasMany(MatchToken::class,'usuario');
     }
 
-    public function matchtoken()
+    public function Permisos()
     {
-        return $this->hasMany(matchtoken::class, 'usuario');
+        return $this->hasMany(Permisos::class, 'usuario');
     }
 
-    public function horalab()
-    {
+    public function HoraLab(){
         return $this->hasMany(Horas_lab::class, 'usuario');
     }
+   
 }

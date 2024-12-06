@@ -5,11 +5,9 @@ namespace App\Http\Controllers;
 
 
 use App\Hooks\FilterChain;
-use App\Notifications\EsLuchTimeNotify;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Foundation\Validation\ValidatesRequests;
 use Illuminate\Routing\Controller as BaseController;
-use Illuminate\Support\Facades\Notification;
 
 class Controller extends BaseController
 {
